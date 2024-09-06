@@ -26,6 +26,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Mappers
             builder.Property(p => p.Number).IsRequired();
             builder.Property(p => p.Neighborhood).IsRequired();
 
+            builder.HasQueryFilter(filter => filter.DeletedAt == null);
+
             builder
                 .HasOne<User>()
                 .WithOne(w => w.Address)

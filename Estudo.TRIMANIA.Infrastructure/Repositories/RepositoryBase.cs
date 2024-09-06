@@ -105,7 +105,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
             }
         }
 
-        public async Task DeleteBatch(IEnumerable<TEntity> entities, bool unitOfWork = true)
+        protected async Task DeleteAggregateBatch<TAggregateEntity>(IEnumerable<TAggregateEntity> entities, bool unitOfWork = true)
+            where TAggregateEntity : EntityBase
         {
             var transaction = _context.Database.CurrentTransaction;
 
@@ -114,10 +115,44 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
 
             try
             {
+                var dbSet = _context.Set<TAggregateEntity>();
+
                 foreach (var entity in entities)
                     entity.DeletedAt = DateTime.UtcNow;
 
-                _dbSet.UpdateRange(entities);
+                dbSet.UpdateRange(entities);
+
+                await _context.SaveChangesAsync();
+
+                if (!unitOfWork)
+                    await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                //if (!unitOfWork)
+                await transaction.RollbackAsync();
+
+                throw;
+            }
+        }
+
+        protected async Task UpdateAggregateBatch<TAggregateEntity>(IEnumerable<TAggregateEntity> entities, bool unitOfWork = true)
+            where TAggregateEntity : EntityBase
+        {
+            var transaction = _context.Database.CurrentTransaction;
+
+            if (!unitOfWork)
+                transaction = _context.Database.BeginTransaction();
+
+            try
+            {
+
+                var dbSet = _context.Set<TAggregateEntity>();
+
+                foreach (var entity in entities)
+                    entity.DeletedAt = DateTime.UtcNow;
+
+                dbSet.UpdateRange(entities);
 
                 await _context.SaveChangesAsync();
 
@@ -133,35 +168,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
             }
         }
 
-        public async Task UpdateBatch(IEnumerable<TEntity> entities, bool unitOfWork = true)
-        {
-            var transaction = _context.Database.CurrentTransaction;
-
-            if (!unitOfWork)
-                transaction = _context.Database.BeginTransaction();
-
-            try
-            {
-                foreach (var entity in entities)
-                    entity.DeletedAt = DateTime.UtcNow;
-
-                _dbSet.UpdateRange(entities);
-
-                await _context.SaveChangesAsync();
-
-                if (!unitOfWork)
-                    await transaction.CommitAsync();
-            }
-            catch (Exception)
-            {
-                if (!unitOfWork)
-                    await transaction.RollbackAsync();
-
-                throw;
-            }
-        }
-
-        public async Task InsertBatch(IEnumerable<TEntity> entities, bool unitOfWork = true)
+        protected async Task InsertAggregateBatch<TAggregateEntity>(IEnumerable<TAggregateEntity> entities, bool unitOfWork = true)
+            where TAggregateEntity : EntityBase
         {
             IDbContextTransaction? transaction = _context.Database.CurrentTransaction;
 
@@ -171,13 +179,15 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
             try
             {
 
+                var dbSet = _context.Set<TAggregateEntity>();
+
                 foreach (var entity in entities)
                 {
                     entity.UpdatedAt = DateTime.UtcNow;
                     entity.creation_date = DateTime.UtcNow;
                 }
 
-                await _dbSet.AddRangeAsync(entities);
+                await dbSet.AddRangeAsync(entities);
 
                 await _context.SaveChangesAsync();
 
@@ -201,8 +211,5 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
         public Task Insert(TEntity entity, bool unitOfWork = true);
         public Task Update(TEntity entity, bool unitOfWork = true);
         public Task Delete(TEntity entity, bool unitOfWork = true);
-        public Task DeleteBatch(IEnumerable<TEntity> entities, bool unitOfWork = true);
-        public Task UpdateBatch(IEnumerable<TEntity> entities, bool unitOfWork = true);
-        public Task InsertBatch(IEnumerable<TEntity> entities, bool unitOfWork = true);
     }
 }

@@ -43,6 +43,8 @@ namespace Estudo.TRIMANIA.Application.Mediators.Carts
 
                 await _stockBridge.SetProductPriceInOrderItem(orderItems);
 
+                await descartarItemsAnteriores(order);
+
                 order.ItemsUpdate(orderItems);
 
                 await _unitOfWork.OrderRepository.Update(order);
@@ -51,13 +53,18 @@ namespace Estudo.TRIMANIA.Application.Mediators.Carts
 
                 var response = _mapper.Map<CreateShoppingCartResponse>(order);
 
-                return new CreateShoppingCartResponse();
+                return response;
             }
             catch (Exception)
             {
                 await _unitOfWork.RollBack();
                 throw;
             }
+        }
+
+        private async Task descartarItemsAnteriores(Order order)
+        {
+            await _unitOfWork.OrderRepository.DeleteItemsBatch(order);
         }
     }
 }

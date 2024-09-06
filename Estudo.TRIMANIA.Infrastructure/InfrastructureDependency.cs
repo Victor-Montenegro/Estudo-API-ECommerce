@@ -6,6 +6,9 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Configuration;
 using System.Data;
 
 namespace Estudo.TRIMANIA.Infrastructure
@@ -16,7 +19,6 @@ namespace Estudo.TRIMANIA.Infrastructure
         {
             ConfigureDatabase(services,configuration);
 
-
             return services;
         }
 
@@ -26,7 +28,7 @@ namespace Estudo.TRIMANIA.Infrastructure
 
             services.AddDbContext<TrimaniaContext>(options =>
             {
-                options.UseSqlServer(trimaniaConnectionString);
+                options.UseSqlServer(trimaniaConnectionString).EnableSensitiveDataLogging();
             });
 
             services.AddFluentMigratorCore().
@@ -51,6 +53,16 @@ namespace Estudo.TRIMANIA.Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
+
+            ConfigureMongo(services, configuration);
+        }
+
+        private static void ConfigureMongo(IServiceCollection services, IConfiguration configuration)
+        {
+            var connectionString = configuration.GetSection("ConnectionStrings:MongoDb").Value;
+            var mongoClient = new MongoClient(connectionString);
+
+            services.AddSingleton(mongoClient);
         }
     }
 }

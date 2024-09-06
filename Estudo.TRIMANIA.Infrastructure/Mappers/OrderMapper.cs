@@ -21,6 +21,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Mappers
             builder.Property(p => p.total_value).IsRequired().HasPrecision(15, 5);
             builder.Property(p => p.Status).IsRequired();
 
+            builder.HasQueryFilter(filter => filter.DeletedAt == null);
+
             builder.HasMany(m => m.Items)
                 .WithOne()
                 .HasForeignKey(f => f.OrderId);

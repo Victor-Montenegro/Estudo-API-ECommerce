@@ -26,6 +26,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Mappers
             builder.Property(p => p.product_id).IsRequired();
             builder.Property(p => p.Price).HasPrecision(15, 5);
 
+            builder.HasQueryFilter(filter => filter.DeletedAt != null);
+
             builder.HasOne<Order>()
                 .WithMany(m => m.Items)
                 .HasForeignKey(m => m.OrderId);

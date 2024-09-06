@@ -25,6 +25,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Mappers
 
             builder.Property(p => p.Identification).IsRequired();
 
+            builder.HasQueryFilter(filter => filter.DeletedAt == null);
+
             builder.HasOne(p => p.Address)
                 .WithOne()
                 .HasForeignKey<Address>(h => h.UserId)

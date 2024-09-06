@@ -90,7 +90,7 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
             return orderId > 0;
         }
 
-        public async Task<Order> GetOrderByUserIdAndStatus(int userId, EOrderStatus orderStatus)
+        public async Task<Order?> GetOrderByUserIdAndStatus(int userId, EOrderStatus orderStatus)
         {
             string query = @"SELECT 
                     o.Id, 
@@ -159,12 +159,18 @@ namespace Estudo.TRIMANIA.Infrastructure.Repositories
 
             return order;
         }
+
+        public async Task DeleteItemsBatch(Order order, bool unitOfWork = true)
+        {
+            await DeleteAggregateBatch(order.Items, unitOfWork);
+        }
     }
 
     public interface IOrderRepository : IRepositoryBase<Order>
     {
         Task<Order?> GetOrderById(int orderId);
         Task<bool> UserAreThereOrders(int userId);
-        Task<Order> GetOrderByUserIdAndStatus(int userId, EOrderStatus orderStatus);
+        Task<Order?> GetOrderByUserIdAndStatus(int userId, EOrderStatus orderStatus);
+        Task DeleteItemsBatch(Order order, bool unitOfWork = true);
     }
 }

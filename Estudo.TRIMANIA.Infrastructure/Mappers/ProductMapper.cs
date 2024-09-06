@@ -20,6 +20,8 @@ namespace Estudo.TRIMANIA.Infrastructure.Mappers
             builder.Property(p => p.Quantity).IsRequired();
             builder.Property(p => p.Description).IsRequired();
             builder.Property(p => p.Price).HasPrecision(15,5).IsRequired();
+
+            builder.HasQueryFilter(filter => filter.DeletedAt == null);
         }
     }
 }
